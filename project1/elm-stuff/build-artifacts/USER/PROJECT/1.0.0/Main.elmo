@@ -1,0 +1,27 @@
+Elm.Main = Elm.Main || {};
+Elm.Main.make = function (_elm) {
+   "use strict";
+   _elm.Main = _elm.Main || {};
+   if (_elm.Main.values)
+   return _elm.Main.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   _P = _N.Ports.make(_elm),
+   $moduleName = "Main",
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Text = Elm.Text.make(_elm);
+   var main = A3($Graphics$Collage.collage,
+   200,
+   200,
+   _L.fromArray([A2($Graphics$Collage.filled,
+                A3($Color.rgb,102,51,153),
+                $Graphics$Collage.circle(50))
+                ,$Graphics$Collage.toForm($Text.plainText("Elm"))]));
+   _elm.Main.values = {_op: _op
+                      ,main: main};
+   return _elm.Main.values;
+};
