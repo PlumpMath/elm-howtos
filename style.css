@@ -13,4 +13,10 @@ div.code {
   padding: 0.5em;
 }
 
-  
+nav {
+  display: block;
+  background-color: #ffccff;
+  font-size: 80%;
+  padding: 0.25em;
+  margin-bottom: 0.5em;
+}
