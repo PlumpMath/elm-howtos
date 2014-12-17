@@ -4,12 +4,47 @@ module Random
     , list, pair
     , minInt, maxInt
     , generate, initialSeed
+    , customGenerator
     )
   where
 
-{-| This library helps you generate pseudo-random values. The best way to use
-it in your programs probably involves carrying a `Seed` in your application's
-state.
+{-| This library helps you generate pseudo-random values.
+
+The general pattern is to define a `Generator` which can produce certain kinds
+of random values. You actually produce random values by feeding a fresh `Seed`
+to your `Generator`.
+
+Since you need a fresh `Seed` to produce more random values, you should
+probably store a `Seed` in your application's state. This will allow you to
+keep updating it as you generate random values and fresh seeds.
+
+The following example models a bunch of bad guys that randomly appear. The
+`possiblyAddBadGuy` function uses the random seed to see if we should add a bad
+guy, and if so, it places a bad guy at a randomly generated point.
+
+    type alias Model =
+        { badGuys : List (Float,Float)
+        , seed : Seed
+        }
+
+    possiblyAddBadGuy : Model -> Model
+    possiblyAddBadGuy model =
+        let (addProbability, seed') =
+              generate (float 0 1) model.seed
+        in
+            if addProbability < 0.9
+              then
+                { model |
+                    seed <- seed'
+                }
+              else
+                let (position, seed'') =
+                      generate (pair (float 0 100) (float 0 100)) seed'
+                in
+                    { model |
+                        badGuys <- position :: model.badGuys
+                        seed <- seed''
+                    }
 
 Details: This is an implemenation of the Portable Combined Generator of
 L'Ecuyer for 32-bit computers. It is almost a direct translation from the
@@ -28,9 +63,10 @@ module. It has a period of roughly 2.30584e18.
 
 @docs maxInt, minInt
 
-# Creating Custom Generators
+# Custom Generators
 
-@docs Generator
+@docs customGenerator
+
 -}
 
 import Basics (..)
@@ -38,17 +74,18 @@ import List
 import List ((::))
 
 
-{-| Generate a 32-bit integer in a given range. This function will continue to
-produce values outside of the range [minInt, maxInt] but sufficient
-randomness is not guaranteed.
+{-| Create a generator that produces 32-bit integers in a given range. This
+function *can* produce values outside of the range [minInt, maxInt] but
+sufficient randomness is not guaranteed.
 
-      int 0 10   -- an integer between zero and ten
-      int -5 5   -- an integer between -5 and 5
+    int 0 10   -- an integer between zero and ten
+    int -5 5   -- an integer between -5 and 5
 
-      int minInt maxInt  -- an integer in the widest range feasible
+    int minInt maxInt  -- an integer in the widest range feasible
 -}
 int : Int -> Int -> Generator Int
-int a b seed =
+int a b =
+  Generator <| \seed ->
     let (lo,hi) = if a < b then (a,b) else (b,a)
 
         k = hi - lo + 1
@@ -72,24 +109,32 @@ iLogBase b i =
     if i < b then 1 else 1 + iLogBase b (i // b)
 
 
-{-| The maximum value for randomly generated for 32-bit ints. -}
+{-| The maximum value for randomly generated 32-bit ints. -}
 maxInt : Int
 maxInt = 2147483647
 
 
-{-| The minimum value for randomly generated for 32-bit ints. -}
+{-| The minimum value for randomly generated 32-bit ints. -}
 minInt : Int
 minInt = -2147483648
 
 
-{-| Generate a float in a given range.
+{-| Create a generator that produces floats in a given range.
+
+    probability : Generator Float
+    probability =
+        float 0 1
+
+    -- generate probability seed0 ==> (0.51, seed1)
+    -- generate probability seed1 ==> (0.04, seed2)
 -}
 float : Float -> Float -> Generator Float
-float a b seed =
+float a b =
+  Generator <| \seed ->
     let (lo, hi) = if a < b then (a,b) else (b,a)
 
         (number, seed') =
-            int minInt maxInt seed
+            generate (int minInt maxInt) seed
 
         negativeOneToOne =
             toFloat number / toFloat (maxInt - minInt)
@@ -105,37 +150,41 @@ float a b seed =
 a point in a certain 2D space. Imagine we have a collage that is 400 pixels
 wide and 200 pixels tall.
 
-      randomPoint : Generator (Int,Int)
-      randomPoint =
-          pair (int -200 200) (int -100 100)
+    randomPoint : Generator (Int,Int)
+    randomPoint =
+        pair (int -200 200) (int -100 100)
 
 -}
 pair : Generator a -> Generator b -> Generator (a,b)
-pair genLeft genRight seed =
+pair (Generator genLeft) (Generator genRight) =
+  Generator <| \seed ->
     let (left , seed' ) = genLeft seed
         (right, seed'') = genRight seed'
     in
         ((left,right), seed'')
 
 
-{-| Create a list of random values using a generator function.
+{-| Create a list of random values.
 
-      floatList : Generator (List Float)
-      floatList = list 10 (float 0 1)
+    floatList : Generator (List Float)
+    floatList =
+        list 10 (float 0 1)
 
-      intList : Generator (List Int)
-      intList = list 5 (int 0 100)
+    intList : Generator (List Int)
+    intList =
+        list 5 (int 0 100)
 
-      intPairs : Generator (List (Int, Int))
-      intPairs =
-          list 10 (pair int int)
+    intPairs : Generator (List (Int, Int))
+    intPairs =
+        list 10 (pair int int)
 -}
 list : Int -> Generator a -> Generator (List a)
-list n gen =
-    listHelp [] n gen
+list n (Generator generate) =
+  Generator <| \seed ->
+    listHelp [] n generate seed
 
 
-listHelp : List a -> Int -> Generator a -> Generator (List a)
+listHelp : List a -> Int -> (Seed -> (a,Seed)) -> Seed -> (List a, Seed)
 listHelp list n generate seed =
     if n < 1
     then (List.reverse list, seed)
@@ -143,20 +192,30 @@ listHelp list n generate seed =
         let (value, seed') = generate seed
         in  listHelp (value :: list) (n-1) generate seed'
 
-{-| A `Generator` is a function that takes a seed, and then returns a random
-value and a new seed. The new seed is used to generate new random values. You
-can use this to define Generators of your own. For example, here is how
-`pair` is implemented.
 
-      pair : Generator a -> Generator b -> Generator (a,b)
-      pair genLeft genRight seed =
-          let (left , seed' ) = genLeft seed
-              (right, seed'') = genRight seed'
-          in
-              ((left,right), seed'')
+{-| Create a custom generator. You provide a function that takes a seed, and
+returns a random value and a new seed. You can use this to create custom
+generators not covered by the basic functions in this library.
+
+    pairOf : Generator a -> Generator (a,a)
+    pairOf generator =
+      customGenerator <| \seed ->
+        let (left , seed' ) = generate generator seed
+            (right, seed'') = generate generator seed'
+        in
+            ((left,right), seed'')
+
 -}
-type alias Generator a =
-    Seed -> (a, Seed)
+customGenerator : (Seed -> (a, Seed)) -> Generator a
+customGenerator generate =
+    Generator generate
+
+
+{-| A `Generator` is a function that takes a seed, and then returns a random
+value and a new seed. The new seed is used to generate new random values.
+-}
+type Generator a =
+    Generator (Seed -> (a, Seed))
 
 type State = State Int Int
 
@@ -170,21 +229,21 @@ type alias Seed =
 {-| Run a random value generator with a given seed. It will give you back a
 random value and a new seed.
 
-      seed0 = initialSeed 42
+    seed0 = initialSeed 31415
 
-      -- generate int seed0 ==> (4123, seed1)
-      -- generate int seed1 ==> (-123, seed2)
-      -- generate int seed2 ==> (1021, seed3)
+    -- generate (int 0 100) seed0 ==> (42, seed1)
+    -- generate (int 0 100) seed1 ==> (31, seed2)
+    -- generate (int 0 100) seed2 ==> (99, seed3)
 
 Notice that we use different seeds on each line. This is important! If you use
 the same seed, you get the same results.
 
-      -- generate int seed0 ==> (4123, seed1)
-      -- generate int seed0 ==> (4123, seed1)
-      -- generate int seed0 ==> (4123, seed1)
+    -- generate (int 0 100) seed0 ==> (42, seed1)
+    -- generate (int 0 100) seed0 ==> (42, seed1)
+    -- generate (int 0 100) seed0 ==> (42, seed1)
 -}
 generate : Generator a -> Seed -> (a, Seed)
-generate generator seed =
+generate (Generator generator) seed =
     generator seed
 
 

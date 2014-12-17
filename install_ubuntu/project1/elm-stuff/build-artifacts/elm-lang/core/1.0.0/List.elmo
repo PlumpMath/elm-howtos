@@ -118,7 +118,7 @@ Elm.List.make = function (_elm) {
                                                   ,_0: _v3._0
                                                   ,_1: A2(_op["::"],x,_v3._1)};}
                _U.badCase($moduleName,
-               "between lines 267 and 269");
+               "between lines 270 and 272");
             }();
          });
          return A3(foldr,
@@ -145,10 +145,10 @@ Elm.List.make = function (_elm) {
                                  _v7._1,
                                  _v8._1)};}
                        _U.badCase($moduleName,
-                       "on line 305, column 12 to 28");
+                       "on line 308, column 12 to 28");
                     }();}
                _U.badCase($moduleName,
-               "on line 305, column 12 to 28");
+               "on line 308, column 12 to 28");
             }();
          });
          return A3(foldr,
@@ -181,7 +181,7 @@ Elm.List.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 316 and 327");
+         "between lines 319 and 330");
       }();
    });
    _elm.List.values = {_op: _op

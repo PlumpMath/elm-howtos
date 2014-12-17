@@ -28,9 +28,15 @@ Elm.Random.make = function (_elm) {
    var magicNum2 = 12211;
    var magicNum1 = 53668;
    var magicNum0 = 40014;
-   var generate = F2(function (generator,
+   var generate = F2(function (_v2,
    seed) {
-      return generator(seed);
+      return function () {
+         switch (_v2.ctor)
+         {case "Generator":
+            return _v2._0(seed);}
+         _U.badCase($moduleName,
+         "on line 247, column 5 to 19");
+      }();
    });
    var Seed = F4(function (a,
    b,
@@ -62,17 +68,17 @@ Elm.Random.make = function (_elm) {
          return A2(State,s1 + 1,s2 + 1);
       }();
    };
-   var next = function (_v2) {
+   var next = function (_v5) {
       return function () {
-         switch (_v2.ctor)
+         switch (_v5.ctor)
          {case "State":
             return function () {
-                 var k$ = _v2._1 / magicNum3 | 0;
-                 var s2$ = magicNum4 * (_v2._1 - k$ * magicNum3) - k$ * magicNum5;
+                 var k$ = _v5._1 / magicNum3 | 0;
+                 var s2$ = magicNum4 * (_v5._1 - k$ * magicNum3) - k$ * magicNum5;
                  var s2$$ = _U.cmp(s2$,
                  0) < 0 ? s2$ + magicNum7 : s2$;
-                 var k = _v2._0 / magicNum1 | 0;
-                 var s1$ = magicNum0 * (_v2._0 - k * magicNum1) - k * magicNum2;
+                 var k = _v5._0 / magicNum1 | 0;
+                 var s1$ = magicNum0 * (_v5._0 - k * magicNum1) - k * magicNum2;
                  var s1$$ = _U.cmp(s1$,
                  0) < 0 ? s1$ + magicNum6 : s1$;
                  var z = s1$$ - s2$$;
@@ -83,29 +89,29 @@ Elm.Random.make = function (_elm) {
                         ,_1: A2(State,s1$$,s2$$)};
               }();}
          _U.badCase($moduleName,
-         "between lines 232 and 241");
+         "between lines 291 and 300");
       }();
    };
-   var split = function (_v6) {
+   var split = function (_v9) {
       return function () {
-         switch (_v6.ctor)
+         switch (_v9.ctor)
          {case "State":
             return function () {
-                 var _raw = $Basics.snd(next(_v6)),
+                 var _raw = $Basics.snd(next(_v9)),
                  $ = _raw.ctor === "State" ? _raw : _U.badCase($moduleName,
-                 "on line 248, column 25 to 38"),
+                 "on line 307, column 25 to 38"),
                  t1 = $._0,
                  t2 = $._1;
-                 var new_s2 = _U.eq(_v6._1,
-                 1) ? magicNum7 - 1 : _v6._1 - 1;
-                 var new_s1 = _U.eq(_v6._0,
-                 magicNum6 - 1) ? 1 : _v6._0 + 1;
+                 var new_s2 = _U.eq(_v9._1,
+                 1) ? magicNum7 - 1 : _v9._1 - 1;
+                 var new_s1 = _U.eq(_v9._0,
+                 magicNum6 - 1) ? 1 : _v9._0 + 1;
                  return {ctor: "_Tuple2"
                         ,_0: A2(State,new_s1,t2)
                         ,_1: A2(State,t1,new_s2)};
               }();}
          _U.badCase($moduleName,
-         "between lines 246 and 250");
+         "between lines 305 and 309");
       }();
    };
    var initialSeed = function (n) {
@@ -114,6 +120,13 @@ Elm.Random.make = function (_elm) {
       next,
       split,
       range);
+   };
+   var Generator = function (a) {
+      return {ctor: "Generator"
+             ,_0: a};
+   };
+   var customGenerator = function (generate) {
+      return Generator(generate);
    };
    var listHelp = F4(function (list,
    n,
@@ -133,27 +146,50 @@ Elm.Random.make = function (_elm) {
          seed$);
       }();
    });
-   var list = F2(function (n,gen) {
-      return A3(listHelp,
-      _L.fromArray([]),
-      n,
-      gen);
-   });
-   var pair = F3(function (genLeft,
-   genRight,
-   seed) {
+   var list = F2(function (n,
+   _v13) {
       return function () {
-         var $ = genLeft(seed),
-         left = $._0,
-         seed$ = $._1;
-         var $ = genRight(seed$),
-         right = $._0,
-         seed$$ = $._1;
-         return {ctor: "_Tuple2"
-                ,_0: {ctor: "_Tuple2"
-                     ,_0: left
-                     ,_1: right}
-                ,_1: seed$$};
+         switch (_v13.ctor)
+         {case "Generator":
+            return Generator(function (seed) {
+                 return A4(listHelp,
+                 _L.fromArray([]),
+                 n,
+                 _v13._0,
+                 seed);
+              });}
+         _U.badCase($moduleName,
+         "between lines 183 and 184");
+      }();
+   });
+   var pair = F2(function (_v16,
+   _v17) {
+      return function () {
+         switch (_v17.ctor)
+         {case "Generator":
+            return function () {
+                 switch (_v16.ctor)
+                 {case "Generator":
+                    return Generator(function (seed) {
+                         return function () {
+                            var $ = _v16._0(seed),
+                            left = $._0,
+                            seed$ = $._1;
+                            var $ = _v17._0(seed$),
+                            right = $._0,
+                            seed$$ = $._1;
+                            return {ctor: "_Tuple2"
+                                   ,_0: {ctor: "_Tuple2"
+                                        ,_0: left
+                                        ,_1: right}
+                                   ,_1: seed$$};
+                         }();
+                      });}
+                 _U.badCase($moduleName,
+                 "between lines 160 and 164");
+              }();}
+         _U.badCase($moduleName,
+         "between lines 160 and 164");
       }();
    });
    var minInt = -2147483648;
@@ -165,76 +201,75 @@ Elm.Random.make = function (_elm) {
       b,
       i / b | 0);
    });
-   var $int = F3(function (a,
-   b,
-   seed) {
-      return function () {
-         var base = 2147483561;
-         var f = F3(function (n,
-         acc,
-         state) {
-            return function () {
-               switch (n)
-               {case 0: return {ctor: "_Tuple2"
-                               ,_0: acc
-                               ,_1: state};}
+   var $int = F2(function (a,b) {
+      return Generator(function (seed) {
+         return function () {
+            var base = 2147483561;
+            var f = F3(function (n,
+            acc,
+            state) {
                return function () {
-                  var $ = seed.next(state),
-                  x = $._0,
-                  state$ = $._1;
-                  return A3(f,
-                  n - 1,
-                  x + acc * base,
-                  state$);
+                  switch (n)
+                  {case 0: return {ctor: "_Tuple2"
+                                  ,_0: acc
+                                  ,_1: state};}
+                  return function () {
+                     var $ = seed.next(state),
+                     x = $._0,
+                     state$ = $._1;
+                     return A3(f,
+                     n - 1,
+                     x + acc * base,
+                     state$);
+                  }();
                }();
-            }();
-         });
-         var $ = _U.cmp(a,
-         b) < 0 ? {ctor: "_Tuple2"
-                  ,_0: a
-                  ,_1: b} : {ctor: "_Tuple2"
-                            ,_0: b
-                            ,_1: a},
-         lo = $._0,
-         hi = $._1;
-         var k = hi - lo + 1;
-         var n = A2(iLogBase,base,k);
-         var $ = A3(f,n,1,seed.state),
-         v = $._0,
-         state$ = $._1;
-         return {ctor: "_Tuple2"
-                ,_0: lo + A2($Basics._op["%"],
-                v,
-                k)
-                ,_1: _U.replace([["state"
-                                 ,state$]],
-                seed)};
-      }();
+            });
+            var $ = _U.cmp(a,
+            b) < 0 ? {ctor: "_Tuple2"
+                     ,_0: a
+                     ,_1: b} : {ctor: "_Tuple2"
+                               ,_0: b
+                               ,_1: a},
+            lo = $._0,
+            hi = $._1;
+            var k = hi - lo + 1;
+            var n = A2(iLogBase,base,k);
+            var $ = A3(f,n,1,seed.state),
+            v = $._0,
+            state$ = $._1;
+            return {ctor: "_Tuple2"
+                   ,_0: lo + A2($Basics._op["%"],
+                   v,
+                   k)
+                   ,_1: _U.replace([["state"
+                                    ,state$]],
+                   seed)};
+         }();
+      });
    });
-   var $float = F3(function (a,
-   b,
-   seed) {
-      return function () {
-         var $ = A3($int,
-         minInt,
-         maxInt,
-         seed),
-         number = $._0,
-         seed$ = $._1;
-         var negativeOneToOne = $Basics.toFloat(number) / $Basics.toFloat(maxInt - minInt);
-         var $ = _U.cmp(a,
-         b) < 0 ? {ctor: "_Tuple2"
-                  ,_0: a
-                  ,_1: b} : {ctor: "_Tuple2"
-                            ,_0: b
-                            ,_1: a},
-         lo = $._0,
-         hi = $._1;
-         var scaled = (lo + hi) / 2 + (hi - lo) * negativeOneToOne;
-         return {ctor: "_Tuple2"
-                ,_0: scaled
-                ,_1: seed$};
-      }();
+   var $float = F2(function (a,b) {
+      return Generator(function (seed) {
+         return function () {
+            var $ = A2(generate,
+            A2($int,minInt,maxInt),
+            seed),
+            number = $._0,
+            seed$ = $._1;
+            var negativeOneToOne = $Basics.toFloat(number) / $Basics.toFloat(maxInt - minInt);
+            var $ = _U.cmp(a,
+            b) < 0 ? {ctor: "_Tuple2"
+                     ,_0: a
+                     ,_1: b} : {ctor: "_Tuple2"
+                               ,_0: b
+                               ,_1: a},
+            lo = $._0,
+            hi = $._1;
+            var scaled = (lo + hi) / 2 + (hi - lo) * negativeOneToOne;
+            return {ctor: "_Tuple2"
+                   ,_0: scaled
+                   ,_1: seed$};
+         }();
+      });
    });
    _elm.Random.values = {_op: _op
                         ,$int: $int
@@ -245,6 +280,7 @@ Elm.Random.make = function (_elm) {
                         ,maxInt: maxInt
                         ,generate: generate
                         ,initialSeed: initialSeed
+                        ,customGenerator: customGenerator
                         ,Seed: Seed};
    return _elm.Random.values;
 };
