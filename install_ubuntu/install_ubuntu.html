@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Installing Elm on Ubuntu</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+<h1>Installing Elm on Ubuntu</h1>
+
+<p>
+These instructions are what I used to install <a href="http://elm-lang.org">Elm</a> on Ubuntu 14.04 (Trusty Tahr) Your mileage may definitely vary. These instructions are written for a user named <code>you</code>.
+</p>
+
+<h2>Haskell</h2>
+
+You will want to install the <a href="http://haskell.org">Haskell</a> compiler and <a href="https://www.haskell.org/cabal/">Cabal</a>, the Common Architecture for Building Applications and Libraries:
+
+<div class="code">
+<pre>you@localhost:~$ <b>sudo apt-get install ghc cabal-install</b></pre>
+</div>
+
+<p>
+For Ubuntu 14.04, the Haskell compiler (<code>ghc</code>) is sufficiently new, but <code>cabal</code> is not the latest and greatest version.
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>ghc --version</b>
+The Glorious Glasgow Haskell Compilation System, version 7.6.3
+you@localhost:~$ <b>cabal --version</b>
+cabal-install version 1.16.0.2</pre>
+</div>
+
+<p>
+First, update the list of packages available to install:
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>cabal update</b>
+Config file path source is default config file.
+Config file /home/you/.cabal/config not found.
+Writing default configuration to /home/you/.cabal/config
+Downloading the latest package list from hackage.haskell.org</pre>
+</div>
+	
+<p>
+In order to make the latest version of cabal available to all users, install it to <code>/usr/local</code>:
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>sudo cabal install cabal-install --prefix=/usr/local</b>
+<i>much output which I won&rsquo;t reproduce here</i>
+Installing executable(s) in /usr/local/bin
+Installed cabal-install-1.20.3</pre>
+</div>
+
+<p>
+Note: You may need to have the <code>zlib1</code> package installed in order to build properly. On my system, the packages were <code>zlib1g</code> and <code>zlib1g-dev</code>.
+</p>
+
+<p>
+After the install is finished, close your terminal, open it again, and check the version. If <code>/usr/local/bin</code> is on your <code>$PATH</code> before <code>/usr/bin</code>, you should get results like this:
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>cabal --version</b>
+cabal-install version 1.20.0.3
+using version 1.20.0.2 of the Cabal Library</pre>
+</div>
+
+<p>
+Since you did the install with <code>sudo</code>, the <code>$HOME/.cabal</code> directory may have some files marked as owned by the root user. Fix this by doing the following (replacing <code>you</code> with your user name). Then, as yourself, again make sure you have the latest packages.
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>sudo chown -R you:you /home/you/.cabal</b>
+you@localhost:~$ <b>cabal update</b></pre>
+</div>
+
+<h2>git</h2>
+
+You will also need the <code>git</code> version control system, as the build process downloads the source from <a href="https://github.com">github</a>:
+
+<div class="code">
+<pre>you@locatlhost:~$ <b>sudo apt-get install git </b></pre>
+</div>
+
+<h2>nodejs</h2>
+
+If you want to use the Elm REPL, you will need Node.js. On Ubuntu, you do this:
+
+<div class="code">
+<pre>you@localhost:~$ <b>sudo apt-get install nodejs</b></pre>
+</div>
+  
+The interpreter on Ubuntu is called <code>nodejs</code> because there is already a package named <code>node</code>, which happens to be an Amateur Packet Radio Node program. Thus, you will have to let the REPL know this new name. In a file named <code>~/.bash_aliases</code>, add this line:
+
+<div class="code">
+<pre>elm-repl='elm-repl --interpreter=node-js'</pre>
+</div>
+
+To activate this alias without having to log out and log in again, do this:
+
+<div class="code">
+<pre>you@localhost:~$ <b>source ~/.bash_aliases</b></pre>
+</div>
+
+(If you don&rsquo;t want to create the alias, you will have to type the <code>--interpreter=nodejs</code> every time you run the REPL. Your choice.)
+
+<h2>Building Elm</h2>
+
+Download the <code>BuildFromSource.hs</code> script from <a href="https://raw.githubusercontent.com/elm-lang/elm-platform/master/src/BuildFromSource.hs"><code>https://raw.githubusercontent.com/elm-lang/elm-platform/master/src/BuildFromSource.hs</code></a>.
+
+Now, open a shell as the root user and check to see that <code>/usr/local/bin</code> is on the <code>$PATH</code>, because you will need the proper version of <code>cabal</code>.
+
+<div class="code">
+<pre>you@localhost:~$ <b>sudo -s</b>
+root@localhost:~# <b>echo $PATH</b>
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</pre>
+</div>
+
+</p>
+If it isn&rsquo;t there, do this command:
+</p>
+
+<div class="code">
+<pre>root@localhost!# <b>export PATH=/usr/local/bin:$PATH</b></pre>
+</div>
+
+<p>
+The following commands will create a directory named <code>Elm-Platform</code> and install the version of Elm found on github&rsquo;s 0.14 branch; it presumes that the <code>BuildFromSource.hs</code> script is in your home directory:
+</p>
+
+<div class="code">
+<pre>root@localhost:~# <b>cd /usr/local</b>
+root@localhost:/usr/local# <b>runhaskell /home/you/BuildFromSource.hs 0.14</b></pre>
+</div>
+
+<p>
+Now, you must add the correct directory to your <code>$PATH</code>. Edit your <code>~/.profile</code> and add this line at the end:
+</p>
+
+<div class="code">
+<pre>PATH=$PATH:/usr/local/Elm-Platform/0.14/bin</pre>
+</div>
+
+You will have to log out and log in again for this to take effect.
+
+<h2>Using Elm</h2>
+
+At this point, try these commands to see that everything is installed correctly:
+
+<div class="code">
+<pre>you@localhost:~$ <b>elm-package --help</b>
+you@localhost:~$ <b>elm-repl --help</b>
+you@localhost:~$ <b>elm-make --help</b></pre>
+</div>
+
+<h2>Your First Project</h2>
+
+<p>
+Create a directory named <code>project1</code> and <code>cd</code> into it:
+</p>
+
+<div class="code">
+<pre>you@localhost:~$ <b>mkdir project1</b>
+you@localhost:~$ <b>cd project1</b></pre>
+</div>
+
+<p>
+Then create a file named <code>project1.elm</code> with these contents, using your favorite text editor:
+</p>
+
+<div class="code">
+<pre>import Text (..)
+import Graphics.Element (..)
+import Graphics.Collage (..)
+import Color (..)
+
+main : Element
+
+main = collage 200 200 [
+    filled (rgb 102 51 153) (circle 50),
+    toForm (plainText "Elm")
+    ]</pre>
+</div>
+
+<p>
+Now build the project with output to a file named <code>project1.html</code>. The first time you build your project, <code>elm-make</code> will detect packages you need and ask you if you want them. You don&rsquo;t get the question after the first build, unless you need other packages.
+</p>
+
+<div class="code">
+<pre>you@localhost:~/project1$ <b>elm-make --output project1.html project1.elm</b>
+Some new packages are needed. Here is the upgrade plan.
+
+Install:
+    elm-lang/core 1.0.0
+
+Do you approve of this plan? (y/n) <b>y</b>
+Packages configured successfully!
+Compiled 33 files                                                   
+Successfully generated project1.html
+you@localhost:~/project1$ <b>ls</b>
+elm-package.json  elm-stuff  project1.elm  project1.html</pre>
+</div>
+
+<p>
+As you see, the build process has created a directory <code>elm-stuff</code> that contains the files from elm-lang/core. It also creates a file <code>elm-package-json</code> that contains information about the proejct. Load the <code>project1.html</code> file into your browser, and you should see something like this:
+</p>
+
+<div class="img">
+<img src="project1_screenshot.png" alt="Word 'Elm' inside purple circle" />
+</div>
+
+<p>
+Now explore the examples and documentation at <a href="http://elm-lang.org/">the Elm web site</a> and make really cool stuff!
+</p>
+
+<h2>Note: Installing on Fedora</h2>
+
+<p>
+The same sequence will work on Fedora 19 (the version on which I tested it); the only changes are to use <code>yum</code> instead of <code>apt-get</code>, and you do not need to put in the alias for <code>elm-repl</code>, as Fedora uses the name <code>node</code> for Node.js.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+pre {
+    font-family: "Liberation Mono", "Courier New", monospace;
+}
+
+div.code {
+  margin: 0.5em 2em;
+  background-color: #eee;
+  border: 1px solid #999;
+  padding: 0.5em;
+}
+
+  
